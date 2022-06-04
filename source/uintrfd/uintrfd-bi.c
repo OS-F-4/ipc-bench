@@ -30,6 +30,7 @@
 #define CLIENT_TOKEN 1
 
 volatile unsigned long uintr_received[2];
+volatile unsigned int uintr_count = 0;
 int uintrfd_client;
 int uintrfd_server;
 int uipi_index[2];
@@ -41,6 +42,7 @@ void __attribute__ ((interrupt))
 
 		// The vector number is same as the token
 		uintr_received[vector] = 1;
+		uintr_count += 1;
 }
 
 int setup_handler_with_vector(int vector) {
@@ -75,14 +77,6 @@ void setup_client(void) {
 
 	uintrfd_client = setup_handler_with_vector(CLIENT_TOKEN);
 
-	// Wait for client to setup its FD.
-	while (!uintrfd_server)
-		usleep(10);
-
-	uipi_index[SERVER_TOKEN] = uintr_register_sender(uintrfd_server, 0);
-	if (uipi_index[SERVER_TOKEN] < 0)
-		throw("Sender register error\n");
-
 	// Enable interrupts
 	_stui();
 
@@ -90,30 +84,21 @@ void setup_client(void) {
 
 void setup_server(void) {
 
-	uintrfd_server = setup_handler_with_vector(SERVER_TOKEN);
-
 	// Wait for client to setup its FD.
 	while (!uintrfd_client)
 		usleep(10);
 
 	uipi_index[CLIENT_TOKEN] = uintr_register_sender(uintrfd_client, 0);
 
-	// Enable interrupts
-	_stui();
-
 }
 
 void *client_communicate(void *arg) {
 
 	struct Arguments* args = (struct Arguments*)arg;
-	int loop;
 
 	setup_client();
 
-	for (loop = args->count; loop > 0; --loop) {
-		uintrfd_wait(CLIENT_TOKEN);
-		uintrfd_notify(SERVER_TOKEN);
-	}
+	while (uintr_count < args->size);
 
 	return NULL;
 }
@@ -130,7 +115,7 @@ void server_communicate(struct Arguments* args) {
 	for (message = 0; message < args->count; ++message) {
 		bench.single_start = now();
 		uintrfd_notify(CLIENT_TOKEN);
-		uintrfd_wait(SERVER_TOKEN);
+		uintrfd_wait(CLIENT_TOKEN);
 		benchmark(&bench);
 	}
 

@@ -57,7 +57,7 @@ void *client_communicate(void *arg) {
 		bench.single_start = now();
 
 		// Send User IPI
-		_senduipi(uipi_index);
+		_senduipi(0);
 
 		while (!uintr_received){
 			// Keep spinning until this user interrupt is received.
@@ -80,14 +80,13 @@ void server_communicate(int descriptor, struct Arguments* args) {
 
 void communicate(int descriptor, struct Arguments* args) {
 
-	pthread_t pt;
-
 	setup_benchmarks(&bench);
 
 	// Create another thread
-	if (pthread_create(&pt, NULL, &client_communicate, args)) {
+	/* if (pthread_create(&pt, NULL, &client_communicate, args)) {
 		throw("Error creating sender thread");
-	}
+	} */
+	client_communicate(args);
 
 	server_communicate(descriptor, args);
 
