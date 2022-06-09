@@ -30,9 +30,21 @@
 #define CLIENT_TOKEN 1
 
 volatile unsigned long uintr_received[2];
-int uintrfd_client=0;
-int uintrfd_server=0;
+int uintrfd_client;
+int uintrfd_server;
 int uipi_index[2];
+char buffer[100000];
+char buffer2[100000];
+void write_(int len){
+	for (int i = 0; i < len; i++){
+		buffer[i] = 1;
+	}
+}
+void read_(int len){
+	for(int i = 0; i < len; ++i){
+		buffer2[i] = buffer[i];
+	}
+}
 
 void __attribute__ ((interrupt))
      __attribute__((target("general-regs-only", "inline-all-stringops")))
@@ -59,7 +71,7 @@ int setup_handler_with_vector(int vector) {
 	return fd;
 }
 
-inline void uintrfd_wait(unsigned int token) {
+void uintrfd_wait(unsigned int token) {
 
 	// Keep spinning until the interrupt is received
 	while (!uintr_received[token]);
@@ -112,6 +124,7 @@ void *client_communicate(void *arg) {
 
 	for (loop = args->count; loop > 0; --loop) {
 		uintrfd_wait(CLIENT_TOKEN);
+		read_(args->size);
 		uintrfd_notify(SERVER_TOKEN);
 	}
 
@@ -129,13 +142,13 @@ void server_communicate(struct Arguments* args) {
 
 	for (message = 0; message < args->count; ++message) {
 		bench.single_start = now();
+		write_(args->size);
 		uintrfd_notify(CLIENT_TOKEN);
 		uintrfd_wait(SERVER_TOKEN);
 		benchmark(&bench);
 	}
 
 	// The message size is always one (it's just a signal)
-	args->size = 1;
 	evaluate(&bench, args);
 }
 
@@ -150,6 +163,9 @@ void communicate(struct Arguments* args) {
 
 	server_communicate(args);
 }
+
+
+
 
 int main(int argc, char* argv[]) {
 
