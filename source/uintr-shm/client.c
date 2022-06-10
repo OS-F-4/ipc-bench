@@ -135,6 +135,8 @@ void communicate(char* shared_memory, struct Arguments* args) {
 
 	free(buffer);
 
+	destroy_client();
+
 }
 
 int main(int argc, char* argv[]) {
