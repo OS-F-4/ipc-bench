@@ -91,7 +91,11 @@ void setup_client(char* shared_memory, atomic_char* guard) {
 
 	// Enable interrupts
 	_stui();
+}
 
+void destroy_client() {
+	close(uintrfd_client);
+	uintr_unregister_handler(0);
 }
 
 void uintrfd_wait(unsigned int token) {
@@ -130,6 +134,7 @@ void communicate(char* shared_memory, struct Arguments* args) {
 	}
 
 	free(buffer);
+
 }
 
 int main(int argc, char* argv[]) {
