@@ -162,7 +162,7 @@ int main(int argc, char* argv[]) {
 	struct Arguments args;
 	parse_arguments(&args, argc, argv);
 
-	segment_key = generate_key("shm");
+	segment_key = generate_key("uintr-shm");
 
 	/*
 		The call that actually allocates the shared memory segment.
