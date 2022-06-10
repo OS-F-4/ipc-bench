@@ -6,6 +6,7 @@
 #include <string.h>
 #include <sys/shm.h>
 #include <unistd.h>
+#include <x86gprintrin.h>
 
 #include "common/common.h"
 
