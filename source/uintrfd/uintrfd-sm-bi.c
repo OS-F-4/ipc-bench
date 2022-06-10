@@ -7,6 +7,7 @@
 #define __USE_GNU
 #include <pthread.h>
 #include <sched.h>
+#include <string.h>
 
 #include "common/common.h"
 
@@ -36,14 +37,10 @@ int uipi_index[2];
 char buffer[100000];
 char buffer2[100000];
 void write_(int len){
-	for (int i = 0; i < len; i++){
-		buffer[i] = 1;
-	}
+	memset(buffer, len, len);
 }
 void read_(int len){
-	for(int i = 0; i < len; ++i){
-		buffer2[i] = buffer[i];
-	}
+	memcpy(buffer2, buffer, len);
 }
 
 void __attribute__ ((interrupt))

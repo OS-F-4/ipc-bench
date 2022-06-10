@@ -54,6 +54,7 @@ void start_process(char *argv[]) {
 		// command path has to be included as well
 		// (that's why argv[0] first)
 		if (execv(argv[0], argv) == -1) {
+			printf("%s \n",argv[0]);
 			throw("Error opening child process");
 		}
 	}
